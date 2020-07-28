@@ -21,14 +21,14 @@ class TimeSpider(scrapy.Spider):
         for url in response.css("h3.headline a::attr(href)"):
             yield response.follow(url, callback=self.parse_story)
         next_page = response.css("a.pagination-next::attr(href)").get()
-        if next_page is not None and int(next_page.split("=")[1]) <= 10:
+        if next_page is not None and int(next_page.split("=")[1]) <= 200:
             yield response.follow(next_page, callback=self.parse)
     
     def parse_story(self, response):
         yield {
             "url": response.request.url,
-            "title": "".join(response.css("h1.headline::text, h1.headline em::text, h1.headline i::text").getall()).strip(),
+            "title": "".join(response.css("h1.headline").css("::text").getall()).strip(),
             "author": response.css("a.author-name::text").get().strip(),
             "date": response.css("div.timestamp::text").get().strip(),
-            "body": " ".join("\n".join(response.css("div.padded p::text, div.padded p a::text, div.padded p em::text, div.padded p i::text, div.padded p a em::text, div.padded p a i::text").getall()).split())
+            "body": "".join(response.css("div.padded").css("p::text, p a::text, p em::text, p i::text, p a em::text, p a i::text, p span.dropcap::text").getall()).strip()
         }
